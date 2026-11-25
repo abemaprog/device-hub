@@ -22,6 +22,11 @@ use gpui_kit::component::{Theme, ThemeMode, TitleBar};
 use gpui_kit::*;
 
 fn main() {
+    // 常駐アプリなので多重起動しない (2 個目は既存の窓を前面に出して終了)。
+    #[cfg(windows)]
+    if !device_hub::tray::single_instance() {
+        return;
+    }
     device_hub::rawinput::start(); // 実測ポーリングレート計測 (Raw Input)
     // USB 計測ワーカーの診断ログ — 未設定なら %TEMP% に既定で出す
     // (切断の OS コード採取用。ワーカー遷移のみで容量は微小)。
@@ -70,7 +75,35 @@ fn main() {
                 tb.title = Some("Device HUB".into());
             }
 
+            // 常駐: ログオン時の自動起動 (`--minimized`) はトレイだけで始める。
+            #[cfg(windows)]
+            let minimized = device_hub::tray::start_minimized();
+            #[cfg(windows)]
+            if minimized {
+                options.show = false;
+                options.focus = false;
+            }
+
             gpui_kit::open_window(options, cx, |window, cx| {
+                #[cfg(windows)]
+                {
+                    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+                    if let Ok(RawWindowHandle::Win32(h)) =
+                        HasWindowHandle::window_handle(window).map(|h| h.as_raw())
+                    {
+                        device_hub::tray::install(h.hwnd.get());
+                    }
+                    // × はトレイへ格納 (トレイメニューの「終了」だけが本当に閉じる)。
+                    window.on_window_should_close(cx, |_, _| {
+                        if device_hub::tray::QUITTING.load(std::sync::atomic::Ordering::Relaxed) {
+                            device_hub::tray::remove();
+                            true
+                        } else {
+                            device_hub::tray::hide_main();
+                            false
+                        }
+                    });
+                }
                 cx.new(|cx| Shell::new(window, cx))
             })
             .expect("failed to open window");

@@ -37,6 +37,7 @@ with a Liquid Glass design.
 | HTS Plus Pro (wired + 2.4GHz dongle) | All settings incl. Rapid Trigger |
 | SU66 Max (Keebforce/Everglide) | Keymap, per-key perf, lighting, macros, live travel |
 | TP55 USB DAC | Parametric EQ |
+| Logicool G PRO X SUPERLIGHT 2 (LIGHTSPEED C54D) | DPI stages, polling 125–8000Hz, buttons, profiles, battery — onboard memory, **no G HUB needed** ([docs/LOGITECH_HIDPP.md](docs/LOGITECH_HIDPP.md)) |
 
 Other models using the same protocols (mouse.fit report-8/EEPROM, xsyd) are
 detected automatically by capability, not by device name.

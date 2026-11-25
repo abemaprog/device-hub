@@ -52,6 +52,23 @@ const fn mf(
     }
 }
 
+/// Logitech G (LIGHTSPEED レシーバー / 有線) の 1 行。
+const fn lg(pid: u16, model: &'static str, transport: Transport, verified: bool) -> KnownDevice {
+    KnownDevice {
+        vid: 0x046D,
+        pid,
+        usage_page: Some(0xFF00),
+        usage: Some(0x02),
+        kind: DeviceKind::Mouse,
+        vendor: "Logitech",
+        model,
+        name: "Logicool G マウス",
+        transport,
+        driver: DriverKind::Logitech,
+        verified,
+    }
+}
+
 /// 対応表。新デバイスはここへ追加する。
 ///
 /// mouse.fit の PID は `https://www.mouse.fit/Config/env-models.json` (2026-11 取得) の
@@ -162,6 +179,15 @@ pub const KNOWN: &[KnownDevice] = &[
         driver: DriverKind::Atk,
         verified: true,
     },
+    // ---------------------------------------------------------------- マウス (Logitech G / HID++ 2.0)
+    // 設定チャネル = if2 の vendor FF00 long コレクション (usage 0x02, report 0x11)。
+    // 内側の機種名は HID++ DeviceName (0x0005) で確定する (ドライバが info.name を上書き)。
+    lg(0xC54D, "logi-lightspeed-c54d", Transport::Wireless24G, true), // PRO X SUPERLIGHT 2 / PRO X 2 — 実機検証済
+    lg(0xC539, "logi-lightspeed-c539", Transport::Wireless24G, false), // G PRO Wireless / G703 / G903
+    lg(0xC547, "logi-lightspeed-c547", Transport::Wireless24G, false), // PRO X SUPERLIGHT
+    lg(0xC088, "logi-gpro-wireless", Transport::Wired, false),        // G PRO Wireless (有線接続)
+    lg(0xC094, "logi-superlight", Transport::Wired, false),           // PRO X SUPERLIGHT (有線接続)
+    lg(0xC09B, "logi-superlight2", Transport::Wired, false),          // PRO X SUPERLIGHT 2 (有線接続)
     // ---------------------------------------------------------------- マウス (lamzu.net)
     // LAMZU Maya X V2 (LM20) 有線 — 実機列挙 37b0:0044。
     // 設定 = if2 FFFF/00 の 64B feature report、通知 = if1 FFA0/01 input report。

@@ -2020,7 +2020,8 @@ impl Shell {
         if self.hwnd == 0 {
             return;
         }
-        let iconic = unsafe { IsIconic(HWND(self.hwnd as _)).as_bool() };
+        // トレイ格納中 (窓非表示) も最小化と同じ扱い。
+        let iconic = unsafe { IsIconic(HWND(self.hwnd as _)).as_bool() } || crate::tray::main_hidden();
         let inactive = iconic || !self.last_window_active;
         unsafe {
             let trim = || {
